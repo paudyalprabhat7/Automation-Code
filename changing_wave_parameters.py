@@ -136,60 +136,6 @@ def stagedconstruct(amp, freq):
     g_i.Dynamics.BoundaryYMin[g_i.Phase_3] = "None"
     g_i.Dynamics.BoundaryZMin[g_i.Phase_3] = "Viscous"
 
-def getgraphsoil(node):
-    g_i.view(g_i.InitialPhase)
-    stepids = []
-    uz = []
-    times = []
-    phasenames = []
-    phaseorder = [g_o.Phase_2, g_o.Phase_3]
-
-    for phase in phaseorder:
-        for step in phase.Steps.value:
-            phasenames.append(phase.Name.value)
-            stepids.append(int(step.Name.value.replace("Step_", "")))
-            uz.append(g_o.getcurveresults(g_o.Nodes[node],
-                                          step,
-                                          g_o.ResultTypes.Soil.Uz))
-            timevalue = "-"
-            if hasattr(step, 'Reached'):
-                if hasattr(step.Reached, 'Time'):
-                    timevalue = step.Reached.Time.value
-            times.append(timevalue)
-        
-    values = np.linspace(0, 0.1, num=200)
-    timestep = pd.Series(values, index=range(200))
-    df = pd.DataFrame()
-    df['t (sec)'] = timestep
-    df['z (mm)'] = pd.Series(uz)
-
-    plt.style.reload_library()
-    plt.style.use(['grid', 'science', 'notebook'])
-    x = df['t (sec)'].tolist()
-    y = df['z (mm)'].tolist()
-
-    plt.figure(facecolor='white')
-    plt.plot(x, y)
-    plt.xlabel('Dynamic Time (sec)')
-    plt.ylabel('Vertical Displacement, Uz (mm)')
-
-    min_y = min(y)
-    plt.axhline(min_y, color='red', linestyle='--')
-    #plt.yticks(np.append(plt.yticks()[0], min_y))
-    plt.tick_params(axis='x', which='major', pad=10)
-    plt.tick_params(axis='y', which='major', pad=10)
-    
-    now = datetime.datetime.now()
-    date_str = now.strftime("%Y-%m-%d_%H%M")
-    filename = "graph_withoutbeam" + date_str
-    directory = "D:\\Plaxis Automation Codes\\Graphs\\withandwithoutbeam"
-
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    plt.savefig(os.path.join(directory, filename + ".png"), dpi=300)
-    plt.show()
-
 def timehistsoil(node):
     stepids = []
     uz = []
@@ -287,3 +233,4 @@ for i in range(len(amp)):
 
         # Save the workbook
         writer.save()
+        time.sleep(60)
