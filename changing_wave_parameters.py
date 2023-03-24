@@ -75,15 +75,6 @@ def setpointdisp(amp,freq):
     g_i.DisplacementMultiplier_1.Amplitude = amp
     g_i.DisplacementMultiplier_1.Frequency = freq
 
-def creategeophone(mat, loc):
-    #create the geophone
-    g_i.embeddedbeam(0.0,0.0,-loc,0.0,0.0,-(loc+40.0))
-
-    #create the geophone material
-    matprop = ['MaterialName', 'Elasticity', 'BeamType', 'PredefinedBeamType', 'SkinResistance', 'Diameter', 'E', 'w', 'Size', 'Tstart', 'Tend', 'A', 'Iyy', 'Izz', 'Iyz', 'Fmax']
-    material = list(zip(matprop, mat))
-    g_i.embeddedbeammat(*material)
-
 def createmesh():
     #meshing_procedure
     g_i.gotomesh()
@@ -98,7 +89,6 @@ def createmesh():
         g_o.addcurvepoint('Node', (0.0,0.0,-depths[i]))
     g_o.update()
    
-
 def stagedconstruct(amp, freq):
     #going to structures and assigning materials and assigning surf_displacement
     g_i.gotostructures()
@@ -200,61 +190,6 @@ def getgraphsoil(node):
     plt.savefig(os.path.join(directory, filename + ".png"), dpi=300)
     plt.show()
 
-
-def getgraphbeam(node):
-    g_i.view(g_i.InitialPhase)
-    stepids = []
-    uz = []
-    times = []
-    phasenames = []
-    phaseorder = [g_o.Phase_2, g_o.Phase_3]
-
-    for phase in phaseorder:
-        for step in phase.Steps.value:
-            phasenames.append(phase.Name.value)
-            stepids.append(int(step.Name.value.replace("Step_", "")))
-            uz.append(g_o.getcurveresults(g_o.Nodes[node],
-                                          step,
-                                          g_o.ResultTypes.EmbeddedBeam.Uz))
-            timevalue = "-"
-            if hasattr(step, 'Reached'):
-                if hasattr(step.Reached, 'Time'):
-                    timevalue = step.Reached.Time.value
-            times.append(timevalue)
-        
-    values = np.linspace(0, 0.1, num=200)
-    timestep = pd.Series(values, index=range(200))
-    df = pd.DataFrame()
-    df['t (sec)'] = timestep
-    df['z (mm)'] = pd.Series(uz)
-
-    plt.style.reload_library()
-    plt.style.use(['grid', 'science', 'notebook'])
-    x = df['t (sec)'].tolist()
-    y = df['z (mm)'].tolist()
-
-    plt.figure(facecolor='white')
-    plt.plot(x, y)
-    plt.xlabel('Dynamic Time (sec)')
-    plt.ylabel('Vertical Displacement, Uz (mm)')
-
-    min_y = min(y)
-    plt.axhline(min_y, color='red', linestyle='--')
-    #plt.yticks(np.append(plt.yticks()[0], min_y))
-    plt.tick_params(axis='x', which='major', pad=10)
-    plt.tick_params(axis='y', which='major', pad=10)
-    
-    now = datetime.datetime.now()
-    date_str = now.strftime("%Y-%m-%d_%H%M")
-    filename = "graph_withbeam" + date_str
-    directory = "D:\\Plaxis Automation Codes\\Graphs\\withandwithoutbeam"
-
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    plt.savefig(os.path.join(directory, filename + ".png"), dpi=300)
-    plt.show()
-
 def timehistsoil(node):
     stepids = []
     uz = []
@@ -327,7 +262,6 @@ freq = np.linspace(1.0, 15.0, n=15)
 hor_ext = 3000
 mat = ['Sand', 2, 0.0192307692307692, 5e-6, 28.0, 2e-8, 2e-8, 0.3, 1, 0.667, 3.11, 0.00079577]
 
-'''
 for i in range(len(amp)):
     for j in range(len(freq)):
         initialize(hor_ext)
@@ -339,7 +273,7 @@ for i in range(len(amp)):
         g_i.view(g_i.InitialPhase)
 
         # Create a workbook object
-        excel_path = 'D:\\Plaxis Automation Codes\\timehistories\\'+'amplitude_'+str(amp[i])+'mm_'+str(freq[j])+'_hz'+'loc_origin'+'.xlsx'
+        excel_path = 'D:\\Automation Code\\timehistories\\'+'amplitude_'+str(amp[i])+'mm_'+str(freq[j])+'_hz'+'loc_origin'+'.xlsx'
         writer = pd.ExcelWriter(excel_path)
 
         # Loop through nodes 0 to 8
@@ -353,9 +287,3 @@ for i in range(len(amp)):
 
         # Save the workbook
         writer.save()
-'''
-
-
-
-
-
