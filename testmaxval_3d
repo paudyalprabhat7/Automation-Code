@@ -42,7 +42,7 @@ def initialize(a):
 
 def createsoilmat(matval):
     #create a sample material
-    matprop = ['Identification', 'SoilModel', 'GRef', 'cRef', 'phi', 'gammaUnsat', 'gammaSat', 'nu', 'InterfaceStrengthDetermination', 'Rinter', 'RayleighAlpha', 'RayleighBeta']
+    matprop = ['MaterialName', 'SoilModel', 'Gref', 'cref', 'phi', 'gammaUnsat', 'gammaSat', 'nu', 'InterfaceStrength', 'Rinter', 'RayleighAlpha', 'RayleighBeta']
     material_data = list(zip(matprop, matval))
     return g_i.soilmat(*material_data)
 
@@ -83,10 +83,7 @@ def createmesh():
     g_i.viewmesh()
     g_i.selectmeshpoints()
     #add curve points for plotting
-    #g_o.addcurvepoint('Node', 0.0,0.0, -1000.0)
-    depths = np.linspace(1000.0, 9000.0, num = 9)
-    for i in range(len(depths)):
-        g_o.addcurvepoint('Node', (0.0,0.0,-depths[i]))
+    g_o.addcurvepoint('Node', 0.0,0.0, -5000.0)
     g_o.update()
    
 def stagedconstruct(amp, freq):
@@ -120,8 +117,8 @@ def stagedconstruct(amp, freq):
     g_i.set(g_i.Phase_2.Deform.TimeStepDetermType, 'Manual')
     g_i.PointDisplacement_1_1.activate(g_i.Phase_2)
     g_i.DynPointDisplacement_1_1.activate(g_i.Phase_2)
-    g_i.Dynamics.BoundaryXMin[g_i.Phase_2] = "None"
-    g_i.Dynamics.BoundaryYMin[g_i.Phase_2] = "None"
+    #g_i.Dynamics.BoundaryXMin[g_i.Phase_2] = "None"
+    #g_i.Dynamics.BoundaryYMin[g_i.Phase_2] = "None"
     g_i.Dynamics.BoundaryZMin[g_i.Phase_2] = "Viscous"
 
     #defining phase 3
@@ -132,8 +129,8 @@ def stagedconstruct(amp, freq):
     g_i.set(g_i.Phase_3.Deform.TimeStepDetermType, 'Manual')
     g_i.PointDisplacement_1_1.deactivate(g_i.Phase_3)
     g_i.DynPointDisplacement_1_1.deactivate(g_i.Phase_3)
-    g_i.Dynamics.BoundaryXMin[g_i.Phase_3] = "None"
-    g_i.Dynamics.BoundaryYMin[g_i.Phase_3] = "None"
+    #g_i.Dynamics.BoundaryXMin[g_i.Phase_3] = "None"
+    #g_i.Dynamics.BoundaryYMin[g_i.Phase_3] = "None"
     g_i.Dynamics.BoundaryZMin[g_i.Phase_3] = "Viscous"
 
 def timehistsoil(node):
@@ -203,34 +200,15 @@ iterations2 = [1000.0, 2000.0, 3000.0, 4000.0, 5000.0, 6000.0, 7000.0, 8000.0, 9
 results = []
 
 #geophone_mat = ['Geophone', 0, 0, 0, 0, 30, 200, 7.65e-8, 30, 0.1, 0.1, 706.858347057703, 39760.7820219958, 39760.7820219958, 0, 100]
-amp = [25]
-freq = [10]
+amp = 25
+freq = 10
 hor_ext = 3000
-mat = ['Sand', 2, 0.0192307692307692, 5e-6, 28.0, 2e-8, 2e-8, 0.3, 1, 0.667, 3.11, 0.00079577]
+mat = ['Sand', 2, 0.0192307692307692, 5e-6, 28.0, 2e-8, 2e-8, 0.3, 1, 0.667, 6.220, 1.592E-3]
 
-for i in range(len(amp)):
-    for j in range(len(freq)):
-        initialize(hor_ext)
-        createsoilmat(mat)
-        createpointdisp()
-        createmesh()
-        stagedconstruct(amp[i], freq[j])
-        calculateval()
-        g_i.view(g_i.InitialPhase)
+initialize(hor_ext)
+createsoilmat(mat)
+createpointdisp()
+createmesh()
+stagedconstruct(amp, freq)
+#calculateval()
 
-        # Create a workbook object
-        excel_path = 'D:\\Automation Code\\timehistories\\'+'amplitude_'+str(amp[i])+'mm_'+str(freq[j])+'_hz'+'loc_origin'+'.xlsx'
-        writer = pd.ExcelWriter(excel_path)
-
-        # Loop through nodes 0 to 8
-        for node in range(9):
-            # Call the timehistsoil function for the current node
-            df = timehistsoil(node)
-            
-            # Write the dataframe to a separate sheet within the workbook
-            sheet_name = 'node_' + str(node+1) + ' m'
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
-
-        # Save the workbook
-        writer.save()
-        time.sleep(60)
